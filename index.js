@@ -2,12 +2,12 @@ const mineflayer = require('mineflayer');
 const express = require('express');
 
 const app = express();
-app.get('/', (req, res) => res.send('Bot AFK đang chờ lệnh chat!'));
+app.get('/', (req, res) => res.send('Bot AFK dang hoat dong!'));
 app.listen(3000, () => console.log('Web server ready!'));
 
 const CONFIG = {
   host: 'tovamc.asia',
-  port: 25565,
+  port: 25565, // Port Java mặc định của PC
   username: 'VietNam_Gamer2026',
   password_game: 'chanbomayde123456',
   nick_chinh: '.minh9948'
@@ -20,12 +20,12 @@ function createBot() {
     host: CONFIG.host,
     port: CONFIG.port,
     username: CONFIG.username,
-    version: '1.21.11', // Ép về phiên bản phổ biến để tránh bị server kick
+    version: false, // Để bot tự động nhận diện đúng phiên bản PC mới nhất của server
     checkTimeoutInterval: 60000
   });
 
   function dropAllItems() {
-    console.log('-> Đang vứt toàn bộ đồ ra đất...');
+    console.log('-> Dang vut toan bo do ra dat...');
     if (bot.inventory) {
       bot.inventory.items().forEach(item => {
         bot.tossStack(item);
@@ -34,65 +34,67 @@ function createBot() {
   }
 
   bot.on('spawn', () => {
-    console.log('-> Bot đã kết nối thành công vào server!');
+    console.log('-> BOT DA VAO SERVER THANH CONG!');
 
+    // 1. Dang ky / Dang nhap
     setTimeout(() => {
       if (isFirstJoin) {
         bot.chat(`/dk ${CONFIG.password_game} ${CONFIG.password_game}`);
-        console.log('Đã gõ /dk');
+        console.log('Da go /dk');
         isFirstJoin = false; 
       } else {
         bot.chat(`/dn ${CONFIG.password_game}`);
-        console.log('Đã gõ /dn');
+        console.log('Da go /dn');
       }
     }, 3000);
 
+    // 2. Mo menu /afk
     setTimeout(() => {
       bot.chat('/afk');
-      console.log('Đã gõ /afk');
+      console.log('Da go /afk');
     }, 7000);
 
+    // Chong AFK: Nhay moi 30s
     setInterval(() => {
       bot.setControlState('jump', true);
       setTimeout(() => bot.setControlState('jump', false), 500);
     }, 30000);
   });
 
+  // Tu dong bam AFK 1 trong rương menu
   bot.on('windowOpen', async (window) => {
     try {
       await bot.clickWindow(0, 0, 0);
-      console.log('-> Đã chọn AFK 1!');
+      console.log('-> Da chon AFK 1!');
     } catch (err) {
-      console.log('Lỗi click menu:', err.message);
+      console.log('Loi click menu:', err.message);
     }
   });
 
+  // NHAN LENH CHAT TU NICK .minh9948
   bot.on('chat', (username, message) => {
     if (username === CONFIG.nick_chinh) {
       if (message === 'vutdo') {
         dropAllItems();
       } else if (message === 'tpa') {
         bot.chat(`/tpa ${CONFIG.nick_chinh}`);
-        console.log(`-> Đã gửi /tpa cho ${CONFIG.nick_chinh}`);
+        console.log(`-> Da gui /tpa cho ${CONFIG.nick_chinh}`);
       } else if (message.startsWith('code ')) {
         const codeInput = message.replace('code ', '').trim();
         bot.chat(`/code ${codeInput}`);
-        console.log(`-> Đã nhập /code ${codeInput}`);
+        console.log(`-> Da nhap /code ${codeInput}`);
       }
     }
   });
 
-  // Bắt lý do vì sao server kick bot
-  bot.on('kicked', (reason) => {
-    console.log('-> Bot bị Server Kick vì lý do:', reason);
-  });
-
+  bot.on('kicked', (reason) => console.log('-> Server kick bot:', reason));
   bot.on('end', (reason) => {
-    console.log(`-> Mất kết nối (${reason})! Kết nối lại sau 15s...`);
+    console.log(`-> Mat ket noi (${reason})! Vao lai sau 15s...`);
     setTimeout(createBot, 15000);
   });
 
-  bot.on('error', (err) => console.log('Lỗi Bot:', err.message));
+  bot.on('error', (err) => console.log('Loi Bot:', err.message));
 }
 
 createBot();
+    
