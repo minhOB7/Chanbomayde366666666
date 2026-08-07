@@ -8,7 +8,7 @@ app.listen(3000, () => console.log('Web server ready!'));
 const CONFIG = {
   host: 'tovamc.asia',
   port: 25565,
-  username: 'VietNam_Gamer2026',
+  username: 'taolatien36677',
   password_game: 'chanbomayde123456',
   nick_chinh: '.minh9948'
 };
