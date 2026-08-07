@@ -28,7 +28,7 @@ app.get('/', (req, res) => {
 const CONFIG = {
   host: 'tovamc.asia',
   port: 25565,
-  username: 'VietNam_Gamer2026',
+  username: 'taolatien36677',
   password_game: 'chanbomayde123456',
   nick_chinh: 'minh9948'
 };
