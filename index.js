@@ -2,7 +2,7 @@ const mineflayer = require('mineflayer');
 const express = require('express');
 
 const app = express();
-// Thay đoạn app.get('/') ở đầu code thành:
+
 app.get('/', (req, res) => {
   res.send(`
     <html>
@@ -25,26 +25,12 @@ app.get('/', (req, res) => {
   `);
 });
 
-app.get('/cmd', (req, res) => {
-  const cmd = req.query.c;
-  if (global.myBot && cmd) {
-    if (cmd === 'vutdo') {
-      dropAllItems();
-    } else {
-      global.myBot.chat(`/${cmd}`);
-    }
-    res.send(`Đã thực hiện lệnh: /${cmd} <br><br><a href="/">Quay lại</a>`);
-  } else {
-    res.send('Bot chưa sẵn sàng!');
-  }
-});
-
 const CONFIG = {
   host: 'tovamc.asia',
   port: 25565,
-  username: 'taolatien36677',
+  username: 'VietNam_Gamer2026',
   password_game: 'chanbomayde123456',
-  nick_chinh: '.minh9948'
+  nick_chinh: 'minh9948'
 };
 
 let isFirstJoin = true;
@@ -57,6 +43,8 @@ function createBot() {
     version: '1.20.4',
     checkTimeoutInterval: 60000
   });
+
+  global.myBot = bot;
 
   function dropAllItems() {
     console.log('-> Dang vut toan bo do ra dat...');
@@ -86,10 +74,16 @@ function createBot() {
       console.log('Da go /afk');
     }, 7000);
 
+    // CHỐNG AFK: Di chuyển ngẫu nhiên (tiến, lùi, trái, phải) mỗi 20 giây
+    const directions = ['forward', 'back', 'left', 'right'];
     setInterval(() => {
-      bot.setControlState('jump', true);
-      setTimeout(() => bot.setControlState('jump', false), 500);
-    }, 30000);
+      const randomDir = directions[Math.floor(Math.random() * directions.length)];
+      bot.setControlState(randomDir, true);
+      
+      setTimeout(() => {
+        bot.setControlState(randomDir, false);
+      }, 1000); // Di chuyển trong 1 giây rồi dừng
+    }, 20000);
   });
 
   bot.on('windowOpen', async (window) => {
@@ -102,14 +96,18 @@ function createBot() {
   });
 
   bot.on('chat', (username, message) => {
-    if (username === CONFIG.nick_chinh) {
-      if (message === 'vutdo') {
+    const cleanUsername = username.toLowerCase().replace(/[^a-z0-9]/g, '');
+    
+    if (cleanUsername.includes(CONFIG.nick_chinh.toLowerCase())) {
+      const msg = message.trim().toLowerCase();
+      
+      if (msg === 'vutdo') {
         dropAllItems();
-      } else if (message === 'tpa') {
-        bot.chat(`/tpa ${CONFIG.nick_chinh}`);
-        console.log(`-> Da gui /tpa cho ${CONFIG.nick_chinh}`);
-      } else if (message.startsWith('code ')) {
-        const codeInput = message.replace('code ', '').trim();
+      } else if (msg === 'tpa') {
+        bot.chat(`/tpa ${username}`);
+        console.log(`-> Da gui /tpa cho ${username}`);
+      } else if (msg.startsWith('code ')) {
+        const codeInput = message.replace(/code /i, '').trim();
         bot.chat(`/code ${codeInput}`);
         console.log(`-> Da nhap /code ${codeInput}`);
       }
@@ -125,5 +123,22 @@ function createBot() {
   bot.on('error', (err) => console.log('Loi Bot:', err.message));
 }
 
-createBot();
+app.get('/cmd', (req, res) => {
+  const cmd = req.query.c;
+  if (global.myBot && cmd) {
+    if (cmd === 'vutdo') {
+      if (global.myBot.inventory) {
+        global.myBot.inventory.items().forEach(item => global.myBot.tossStack(item));
+      }
+    } else {
+      global.myBot.chat(`/${cmd}`);
+    }
+    res.send(`Đã thực hiện lệnh: /${cmd} <br><br><a href="/">Quay lại</a>`);
+  } else {
+    res.send('Bot chưa sẵn sàng!');
+  }
+});
 
+app.listen(3000, () => console.log('Web server ready!'));
+
+createBot();
