@@ -7,7 +7,7 @@ app.listen(3000, () => console.log('Web server ready!'));
 
 const CONFIG = {
   host: 'tovamc.asia',
-  port: 19033,
+  port: 25565,
   username: 'VietNam_Gamer2026',
   password_game: 'chanbomayde123456',
   nick_chinh: '.minh9948'
@@ -20,7 +20,7 @@ function createBot() {
     host: CONFIG.host,
     port: CONFIG.port,
     username: CONFIG.username,
-    version: '1.20.1', // Ép về phiên bản phổ biến để tránh bị server kick
+    version: '1.21.11', // Ép về phiên bản phổ biến để tránh bị server kick
     checkTimeoutInterval: 60000
   });
 
