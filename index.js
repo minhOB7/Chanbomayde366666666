@@ -2,8 +2,42 @@ const mineflayer = require('mineflayer');
 const express = require('express');
 
 const app = express();
-app.get('/', (req, res) => res.send('Bot AFK dang hoat dong!'));
-app.listen(3000, () => console.log('Web server ready!'));
+// Thay đoạn app.get('/') ở đầu code thành:
+app.get('/', (req, res) => {
+  res.send(`
+    <html>
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Bot Control</title>
+        <style>
+          body { font-family: sans-serif; text-align: center; padding: 20px; background: #121212; color: white; }
+          button { padding: 15px 25px; margin: 10px; font-size: 18px; border: none; border-radius: 8px; cursor: pointer; }
+          .tpa { background: #4CAF50; color: white; }
+          .vut { background: #f44336; color: white; }
+        </style>
+      </head>
+      <body>
+        <h2>BẢNG ĐIỀU KHIỂN BOT AFK</h2>
+        <a href="/cmd?c=tpa%20%2B.Minh9948"><button class="tpa">Gửi /tpa cho .Minh9948</button></a><br>
+        <a href="/cmd?c=vutdo"><button class="vut">Vứt toàn bộ đồ</button></a>
+      </body>
+    </html>
+  `);
+});
+
+app.get('/cmd', (req, res) => {
+  const cmd = req.query.c;
+  if (global.myBot && cmd) {
+    if (cmd === 'vutdo') {
+      dropAllItems();
+    } else {
+      global.myBot.chat(`/${cmd}`);
+    }
+    res.send(`Đã thực hiện lệnh: /${cmd} <br><br><a href="/">Quay lại</a>`);
+  } else {
+    res.send('Bot chưa sẵn sàng!');
+  }
+});
 
 const CONFIG = {
   host: 'tovamc.asia',
