@@ -11,15 +11,24 @@ app.get('/', (req, res) => {
         <title>Bot Control</title>
         <style>
           body { font-family: sans-serif; text-align: center; padding: 20px; background: #121212; color: white; }
-          button { padding: 15px 25px; margin: 10px; font-size: 18px; border: none; border-radius: 8px; cursor: pointer; }
+          button { padding: 15px 25px; margin: 10px; font-size: 18px; border: none; border-radius: 8px; cursor: pointer; display: block; width: 90%; margin: 10px auto; }
           .tpa { background: #4CAF50; color: white; }
           .vut { background: #f44336; color: white; }
+          .shard { background: #FF9800; color: white; }
+          .code { background: #2196F3; color: white; }
+          input { padding: 10px; width: 80%; border-radius: 5px; border: none; margin-bottom: 10px; }
         </style>
       </head>
       <body>
-        <h2>BẢNG ĐIỀU KHIỂN BOT AFK</h2>
-        <a href="/cmd?c=tpa%20%2B.Minh9948"><button class="tpa">Gửi /tpa cho .Minh9948</button></a><br>
+        <h2>ĐIỀU KHIỂN BOT</h2>
+        <a href="/cmd?c=tpa%20.Minh9948"><button class="tpa">Gửi /tpa .Minh9948</button></a>
+        <a href="/cmd?c=shard"><button class="shard">Xem số Shard hiện tại</button></a>
         <a href="/cmd?c=vutdo"><button class="vut">Vứt toàn bộ đồ</button></a>
+        <hr>
+        <form action="/cmd" method="GET">
+          <input type="text" name="c" placeholder="Nhập mã code...">
+          <button class="code">Nhập Code</button>
+        </form>
       </body>
     </html>
   `);
@@ -28,12 +37,31 @@ app.get('/', (req, res) => {
 const CONFIG = {
   host: 'tovamc.asia',
   port: 25565,
-  username: 'taolatien36677',
+  username: 'VietNam_Gamer2026',
   password_game: 'chanbomayde123456',
   nick_chinh: 'minh9948'
 };
 
 let isFirstJoin = true;
+
+// Hàm đọc thông tin Shard từ Scoreboard bên tay phải
+function getShardFromScoreboard(bot) {
+  try {
+    const scoreboard = bot.scoreboard['sidebar'];
+    if (!scoreboard) return 'Chưa tải được bảng Scoreboard!';
+
+    const items = Object.values(scoreboard.itemsMap);
+    for (const item of items) {
+      const lineText = item.displayName ? item.displayName.toString() : '';
+      if (lineText.toLowerCase().includes('shard')) {
+        return lineText; // Trả về toàn bộ dòng chứa số Shard
+      }
+    }
+    return 'Không tìm thấy dòng Shard trên Scoreboard!';
+  } catch (err) {
+    return 'Lỗi khi đọc Scoreboard: ' + err.message;
+  }
+}
 
 function createBot() {
   const bot = mineflayer.createBot({
@@ -47,98 +75,75 @@ function createBot() {
   global.myBot = bot;
 
   function dropAllItems() {
-    console.log('-> Dang vut toan bo do ra dat...');
+    console.log('-> Dang vut do...');
     if (bot.inventory) {
-      bot.inventory.items().forEach(item => {
-        bot.tossStack(item);
-      });
+      bot.inventory.items().forEach(item => bot.tossStack(item));
     }
   }
 
   bot.on('spawn', () => {
-    console.log('-> BOT DA VAO SERVER THANH CONG!');
+    console.log('-> BOT DA VAO SERVER!');
 
     setTimeout(() => {
-      if (isFirstJoin) {
-        bot.chat(`/dk ${CONFIG.password_game} ${CONFIG.password_game}`);
-        console.log('Da go /dk');
-        isFirstJoin = false; 
-      } else {
-        bot.chat(`/dn ${CONFIG.password_game}`);
-        console.log('Da go /dn');
-      }
+      bot.chat(isFirstJoin ? `/dk ${CONFIG.password_game} ${CONFIG.password_game}` : `/dn ${CONFIG.password_game}`);
+      isFirstJoin = false;
     }, 3000);
 
-    setTimeout(() => {
-      bot.chat('/afk');
-      console.log('Da go /afk');
-    }, 7000);
+    setTimeout(() => bot.chat('/afk'), 7000);
 
-    // CHỐNG AFK: Di chuyển ngẫu nhiên (tiến, lùi, trái, phải) mỗi 20 giây
+    // CHỐNG AFK: Di chuyển ngẫu nhiên 1 phút/lần
     const directions = ['forward', 'back', 'left', 'right'];
     setInterval(() => {
       const randomDir = directions[Math.floor(Math.random() * directions.length)];
       bot.setControlState(randomDir, true);
-      
-      setTimeout(() => {
-        bot.setControlState(randomDir, false);
-      }, 1000); // Di chuyển trong 1 giây rồi dừng
-    }, 20000);
+      setTimeout(() => bot.setControlState(randomDir, false), 1000);
+      console.log('-> Di chuyen chong AFK');
+    }, 60000); 
   });
 
   bot.on('windowOpen', async (window) => {
-    try {
-      await bot.clickWindow(0, 0, 0);
-      console.log('-> Da chon AFK 1!');
-    } catch (err) {
-      console.log('Loi click menu:', err.message);
-    }
+    try { await bot.clickWindow(0, 0, 0); } catch (err) {}
   });
 
+  // Đọc lệnh chat trong game từ nick chính
   bot.on('chat', (username, message) => {
     const cleanUsername = username.toLowerCase().replace(/[^a-z0-9]/g, '');
-    
-    if (cleanUsername.includes(CONFIG.nick_chinh.toLowerCase())) {
+    if (cleanUsername.includes(CONFIG.nick_chinh)) {
       const msg = message.trim().toLowerCase();
-      
-      if (msg === 'vutdo') {
-        dropAllItems();
-      } else if (msg === 'tpa') {
-        bot.chat(`/tpa ${username}`);
-        console.log(`-> Da gui /tpa cho ${username}`);
-      } else if (msg.startsWith('code ')) {
-        const codeInput = message.replace(/code /i, '').trim();
-        bot.chat(`/code ${codeInput}`);
-        console.log(`-> Da nhap /code ${codeInput}`);
+      if (msg === 'vutdo') dropAllItems();
+      else if (msg === 'tpa') bot.chat(`/tpa .Minh9948`);
+      else if (msg === 'shard') {
+        const shardInfo = getShardFromScoreboard(bot);
+        bot.chat(shardInfo);
       }
+      else if (msg.startsWith('code ')) bot.chat(`/code ${message.substring(5)}`);
     }
   });
 
-  bot.on('kicked', (reason) => console.log('-> Server kick bot:', reason));
-  bot.on('end', (reason) => {
-    console.log(`-> Mat ket noi (${reason})! Vao lai sau 15s...`);
-    setTimeout(createBot, 15000);
-  });
-
-  bot.on('error', (err) => console.log('Loi Bot:', err.message));
+  bot.on('end', () => setTimeout(createBot, 15000));
 }
 
 app.get('/cmd', (req, res) => {
   const cmd = req.query.c;
   if (global.myBot && cmd) {
     if (cmd === 'vutdo') {
-      if (global.myBot.inventory) {
-        global.myBot.inventory.items().forEach(item => global.myBot.tossStack(item));
-      }
+      if (global.myBot.inventory) global.myBot.inventory.items().forEach(i => global.myBot.tossStack(i));
+      res.send(`Đã thực hiện: Vứt đồ <br><br><a href="/">Quay lại</a>`);
+    } else if (cmd.startsWith('tpa')) {
+      global.myBot.chat(`/tpa .Minh9948`);
+      res.send(`Đã thực hiện: /tpa .Minh9948 <br><br><a href="/">Quay lại</a>`);
+    } else if (cmd === 'shard') {
+      const shardResult = getShardFromScoreboard(global.myBot);
+      res.send(`<h3>Thông tin Shard:</h3> <p style="font-size:20px; color:orange;">${shardResult}</p> <br><a href="/">Quay lại</a>`);
     } else {
-      global.myBot.chat(`/${cmd}`);
+      global.myBot.chat(`/code ${cmd}`);
+      res.send(`Đã nhập code: ${cmd} <br><br><a href="/">Quay lại</a>`);
     }
-    res.send(`Đã thực hiện lệnh: /${cmd} <br><br><a href="/">Quay lại</a>`);
   } else {
-    res.send('Bot chưa sẵn sàng!');
+    res.send('Bot chưa sẵn sàng! Vui lòng thử lại sau vài giây.');
   }
 });
 
-app.listen(3000, () => console.log('Web server ready!'));
-
+app.listen(3000, () => console.log('Server ready!'));
 createBot();
+                 
