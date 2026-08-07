@@ -7,7 +7,7 @@ app.listen(3000, () => console.log('Web server ready!'));
 
 const CONFIG = {
   host: 'tovamc.asia',
-  port: 25565, // Port Java mặc định của PC
+  port: 25565,
   username: 'VietNam_Gamer2026',
   password_game: 'chanbomayde123456',
   nick_chinh: '.minh9948'
@@ -20,7 +20,7 @@ function createBot() {
     host: CONFIG.host,
     port: CONFIG.port,
     username: CONFIG.username,
-    version: 1.20.4, // Để bot tự động nhận diện đúng phiên bản PC mới nhất của server
+    version: '1.20.4',
     checkTimeoutInterval: 60000
   });
 
@@ -36,7 +36,6 @@ function createBot() {
   bot.on('spawn', () => {
     console.log('-> BOT DA VAO SERVER THANH CONG!');
 
-    // 1. Dang ky / Dang nhap
     setTimeout(() => {
       if (isFirstJoin) {
         bot.chat(`/dk ${CONFIG.password_game} ${CONFIG.password_game}`);
@@ -48,20 +47,17 @@ function createBot() {
       }
     }, 3000);
 
-    // 2. Mo menu /afk
     setTimeout(() => {
       bot.chat('/afk');
       console.log('Da go /afk');
     }, 7000);
 
-    // Chong AFK: Nhay moi 30s
     setInterval(() => {
       bot.setControlState('jump', true);
       setTimeout(() => bot.setControlState('jump', false), 500);
     }, 30000);
   });
 
-  // Tu dong bam AFK 1 trong rương menu
   bot.on('windowOpen', async (window) => {
     try {
       await bot.clickWindow(0, 0, 0);
@@ -71,7 +67,6 @@ function createBot() {
     }
   });
 
-  // NHAN LENH CHAT TU NICK .minh9948
   bot.on('chat', (username, message) => {
     if (username === CONFIG.nick_chinh) {
       if (message === 'vutdo') {
@@ -97,4 +92,4 @@ function createBot() {
 }
 
 createBot();
-    
+
