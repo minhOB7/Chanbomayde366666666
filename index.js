@@ -20,7 +20,7 @@ function createBot() {
     host: CONFIG.host,
     port: CONFIG.port,
     username: CONFIG.username,
-    version: false, // Để bot tự động nhận diện đúng phiên bản PC mới nhất của server
+    version: 26.2, // Để bot tự động nhận diện đúng phiên bản PC mới nhất của server
     checkTimeoutInterval: 60000
   });
 
