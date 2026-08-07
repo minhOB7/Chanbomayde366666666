@@ -13,7 +13,6 @@ const CONFIG = {
 
 let isFirstJoin = true;
 
-// Hàm đọc thông tin Shard từ Scoreboard bên tay phải
 function getShardFromScoreboard(bot) {
   try {
     const scoreboard = bot.scoreboard['sidebar'];
@@ -105,10 +104,9 @@ function createBot() {
   bot.on('error', (err) => console.log('Loi Bot:', err.message));
 }
 
-// KHỞI CHẠY BOT
 createBot();
 
-// KHỞI CHẠY WEB SERVER
+// GIAO DIỆN WEB CONTROL
 app.get('/', (req, res) => {
   res.send(`
     <html>
@@ -122,18 +120,28 @@ app.get('/', (req, res) => {
           .vut { background: #f44336; color: white; }
           .shard { background: #FF9800; color: white; }
           .code { background: #2196F3; color: white; }
-          input { padding: 10px; width: 80%; border-radius: 5px; border: none; margin-bottom: 10px; }
+          .send { background: #9C27B0; color: white; }
+          input { padding: 12px; width: 85%; border-radius: 5px; border: none; margin-bottom: 10px; font-size: 16px; }
         </style>
       </head>
       <body>
-        <h2>ĐIỀU KHIỂN BOT</h2>
-        <a href="/cmd?c=tpa%20.Minh9948"><button class="tpa">Gửi /tpa .Minh9948</button></a>
-        <a href="/cmd?c=shard"><button class="shard">Xem số Shard hiện tại</button></a>
-        <a href="/cmd?c=vutdo"><button class="vut">Vứt toàn bộ đồ</button></a>
+        <h2>ĐIỀU KHIỂN BOT (${CONFIG.username})</h2>
+        <a href="/cmd?type=preset&c=tpa"><button class="tpa">Gửi /tpa .Minh9948</button></a>
+        <a href="/cmd?type=preset&c=shard"><button class="shard">Xem số Shard hiện tại</button></a>
+        <a href="/cmd?type=preset&c=vutdo"><button class="vut">Vứt toàn bộ đồ</button></a>
         <hr>
+        <h3>Nhập Code</h3>
         <form action="/cmd" method="GET">
+          <input type="hidden" name="type" value="code">
           <input type="text" name="c" placeholder="Nhập mã code...">
           <button class="code">Nhập Code</button>
+        </form>
+        <hr>
+        <h3>Gửi Lệnh / Chat Bất Kỳ</h3>
+        <form action="/cmd" method="GET">
+          <input type="hidden" name="type" value="custom">
+          <input type="text" name="c" placeholder="Ví dụ: /afk hoặc hi all...">
+          <button class="send">Gửi Vào Game</button>
         </form>
       </body>
     </html>
@@ -142,19 +150,26 @@ app.get('/', (req, res) => {
 
 app.get('/cmd', (req, res) => {
   const cmd = req.query.c;
+  const type = req.query.type;
+
   if (global.myBot && cmd) {
-    if (cmd === 'vutdo') {
-      if (global.myBot.inventory) global.myBot.inventory.items().forEach(i => global.myBot.tossStack(i));
-      res.send(`Đã thực hiện: Vứt đồ <br><br><a href="/">Quay lại</a>`);
-    } else if (cmd.startsWith('tpa')) {
-      global.myBot.chat(`/tpa .Minh9948`);
-      res.send(`Đã thực hiện: /tpa .Minh9948 <br><br><a href="/">Quay lại</a>`);
-    } else if (cmd === 'shard') {
-      const shardResult = getShardFromScoreboard(global.myBot);
-      res.send(`<h3>Thông tin Shard:</h3> <p style="font-size:20px; color:orange;">${shardResult}</p> <br><a href="/">Quay lại</a>`);
-    } else {
+    if (type === 'preset') {
+      if (cmd === 'vutdo') {
+        if (global.myBot.inventory) global.myBot.inventory.items().forEach(i => global.myBot.tossStack(i));
+        res.send(`Đã thực hiện: Vứt đồ <br><br><a href="/">Quay lại</a>`);
+      } else if (cmd === 'tpa') {
+        global.myBot.chat(`/tpa .Minh9948`);
+        res.send(`Đã thực hiện: /tpa .Minh9948 <br><br><a href="/">Quay lại</a>`);
+      } else if (cmd === 'shard') {
+        const shardResult = getShardFromScoreboard(global.myBot);
+        res.send(`<h3>Thông tin Shard:</h3> <p style="font-size:20px; color:orange;">${shardResult}</p> <br><a href="/">Quay lại</a>`);
+      }
+    } else if (type === 'code') {
       global.myBot.chat(`/code ${cmd}`);
-      res.send(`Đã nhập code: ${cmd} <br><br><a href="/">Quay lại</a>`);
+      res.send(`Đã nhập code: /code ${cmd} <br><br><a href="/">Quay lại</a>`);
+    } else if (type === 'custom') {
+      global.myBot.chat(cmd);
+      res.send(`Đã gửi vào game: ${cmd} <br><br><a href="/">Quay lại</a>`);
     }
   } else {
     res.send('Bot chưa sẵn sàng! Vui lòng thử lại sau vài giây.');
@@ -162,4 +177,4 @@ app.get('/cmd', (req, res) => {
 });
 
 app.listen(3000, () => console.log('Web server ready!'));
-  
+
